@@ -1,2 +1,830 @@
-# MPAC-Membership-Dashboards
-MPAC Membership Dashboards
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MPAC Membership Portal | Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #0033CC;
+      --primary-dark: #002299;
+      --pink: #C2185B;
+      --amber: #FFA000;
+      --bg-light: #f4f7fc;
+      --card-bg: rgba(255,255,255,0.92);
+      --text-dark: #1e293b;
+      --shadow: 0 8px 20px rgba(0,0,0,0.05);
+      --radius: 28px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-light); color: var(--text-dark); padding: 20px; }
+    .container { max-width: 1500px; margin: 0 auto; }
+
+    /* LOGIN OVERLAY */
+    .login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(0,17,102,0.95), rgba(0,51,204,0.95));
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s ease;
+    }
+    .login-card {
+      background: white;
+      border-radius: 2rem;
+      padding: 2rem 1.8rem;
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+      animation: fadeInUp 0.4s ease;
+    }
+    .login-logo {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg, var(--amber), var(--primary));
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 0 0 3px rgba(255,160,0,0.3);
+    }
+    .login-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .login-card h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 0.25rem;
+    }
+    .login-motto {
+      font-size: 0.8rem;
+      color: var(--amber);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px dashed #ccc;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    .input-group {
+      margin-bottom: 1.2rem;
+      text-align: left;
+    }
+    .input-group label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--primary);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .login-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #f9fafb;
+      border: 1px solid #e2e8f0;
+      border-radius: 2rem;
+      font-size: 0.9rem;
+      transition: 0.2s;
+    }
+    .login-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0,51,204,0.2);
+    }
+    .login-btn {
+      background: linear-gradient(95deg, var(--primary), var(--primary-dark));
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 3rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: white;
+      font-size: 0.9rem;
+      transition: 0.2s;
+    }
+    .login-btn:hover {
+      transform: scale(1.01);
+      opacity: 0.95;
+    }
+    .error-message {
+      display: none;
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 8px;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      margin-top: 1rem;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* MAIN APP */
+    .main-app {
+      display: none;
+    }
+    .main-app.visible {
+      display: block;
+    }
+
+    .premium-header { background: linear-gradient(135deg, var(--primary-dark), #001166); border-radius: var(--radius); padding: 16px 28px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow); color: white; }
+    .logo-section { display: flex; align-items: center; gap: 16px; }
+    .logo-badge { width: 54px; height: 54px; background: linear-gradient(135deg, var(--amber), var(--primary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 0 2px rgba(255,160,0,0.5); }
+    .logo-badge img { width: 100%; height: 100%; object-fit: cover; }
+    .header-text h1 { font-size: 1.5rem; font-weight: 800; }
+    .light-motto { font-size: 0.75rem; opacity: 0.85; margin-top: 4px; color: #FFE0A3; }
+    .stats-badge { display: flex; gap: 20px; background: rgba(0,0,0,0.3); padding: 6px 18px; border-radius: 60px; font-size: 0.8rem; }
+    .stats-badge span { font-weight: 800; color: var(--amber); margin-left: 4px; }
+    .sync-status { font-size: 0.7rem; background: rgba(0,0,0,0.4); padding: 2px 10px; border-radius: 40px; }
+    .sync-status.offline { background: #C2185B; }
+    .nav-horizontal { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; background: var(--card-bg); border-radius: 60px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.06); }
+    .nav-pill { background: transparent; border: none; padding: 10px 24px; border-radius: 50px; font-weight: 600; color: #475569; cursor: pointer; transition: 0.2s; }
+    .nav-pill.active { background: linear-gradient(105deg, var(--primary), var(--primary-dark)); color: white; }
+    .tab-content { display: none; animation: fadeIn 0.2s; }
+    .tab-content.active { display: block; }
+    .glass-card { background: var(--card-bg); border-radius: 32px; border: 1px solid rgba(0,0,0,0.06); margin-bottom: 24px; overflow: hidden; box-shadow: var(--shadow); }
+    .card-header { padding: 16px 24px; background: rgba(0,0,0,0.02); border-bottom: 2px solid var(--amber); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; padding: 28px; }
+    .form-section { background: #f8fafc; border-radius: 24px; padding: 20px; border-left: 4px solid var(--primary); }
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--primary); margin-bottom: 6px; }
+    .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px 14px; background: white; border: 1px solid #e2e8f0; border-radius: 18px; font-family: inherit; }
+    .radio-group { display: flex; gap: 24px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+    .phone-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .btn-gold { background: linear-gradient(95deg, var(--primary), var(--primary-dark)); border: none; padding: 14px; border-radius: 60px; font-weight: 800; color: white; cursor: pointer; width: 100%; transition: 0.2s; }
+    .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-outline { background: rgba(0,51,204,0.08); border: 1px solid var(--pink); padding: 8px 18px; border-radius: 60px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .btn-outline:hover { background: var(--pink); color: white; border-color: var(--pink); }
+    .data-table-wrapper { overflow-x: auto; padding: 0 20px 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    th { color: var(--primary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .member-actions i { margin: 0 8px; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
+    .member-actions i.fa-edit:hover { color: var(--amber); }
+    .member-actions i.fa-trash-alt:hover { color: var(--pink); }
+    .filter-bar { background: white; border-radius: 24px; padding: 16px 20px; margin: 0 20px 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; box-shadow: var(--shadow); }
+    .filter-group { flex: 1 1 150px; }
+    .filter-group label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; text-transform: uppercase; }
+    .filter-select, .date-input { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; }
+    
+    /* COLOURFUL KPI BOXES */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin: 20px;
+    }
+    .kpi-box {
+      border-radius: 24px;
+      padding: 20px 12px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s;
+      color: white;
+    }
+    .kpi-box:hover { transform: translateY(-5px); }
+    .kpi-icon { font-size: 2rem; margin-bottom: 10px; opacity: 0.9; }
+    .kpi-val { font-size: 2rem; font-weight: 800; margin: 5px 0; }
+    .kpi-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+    
+    .kpi-total { background: linear-gradient(135deg, #0033CC, #1E4DE0); }
+    .kpi-baptised { background: linear-gradient(135deg, #C2185B, #E91E63); }
+    .kpi-bornagain { background: linear-gradient(135deg, #FFA000, #FF8F00); }
+    .kpi-children { background: linear-gradient(135deg, #00ACC1, #0097A7); }
+    .kpi-denom { background: linear-gradient(135deg, #9C27B0, #7B1FA2); }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 24px;
+      margin: 20px;
+    }
+    .chart-container { height: 320px; padding: 10px; position: relative; }
+    .checkbox-label { display: flex; align-items: center; gap: 12px; margin: 16px 0 12px; }
+    .inline-note { font-size: 0.7rem; color: #64748b; margin-top: 8px; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--primary-dark); color: white; padding: 10px 20px; border-radius: 40px; display: none; z-index: 2100; font-weight: bold; box-shadow: var(--shadow); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 800px) { .phone-row { grid-template-columns: 1fr; } .chart-grid { grid-template-columns: 1fr; } .form-grid { padding: 16px; } }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="https://i.imgur.com/kTumLOY.jpg" alt="MPAC Logo" onerror="this.src='https://via.placeholder.com/90?text=MPAC'">
+    </div>
+    <h2>MPAC DataHub</h2>
+    <div class="login-motto">✨ The Difference we Need ✨</div>
+    <form id="loginForm">
+      <div class="input-group">
+        <label><i class="fas fa-user"></i> Username</label>
+        <input type="text" id="loginUsername" class="login-input" placeholder="MPAC" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label><i class="fas fa-lock"></i> Password</label>
+        <input type="password" id="loginPassword" class="login-input" placeholder="••••••">
+      </div>
+      <button type="submit" class="login-btn"><i class="fas fa-arrow-right"></i> Access Portal</button>
+      <div id="loginError" class="error-message"><i class="fas fa-exclamation-triangle"></i> Invalid credentials</div>
+    </form>
+  </div>
+</div>
+
+<!-- MAIN APPLICATION -->
+<div id="mainApp" class="main-app">
+  <div class="container">
+    <div class="premium-header">
+      <div class="logo-section">
+        <div class="logo-badge"><img src="https://i.imgur.com/kTumLOY.jpg" alt="MPAC Logo" onerror="this.src='https://via.placeholder.com/54?text=MPAC'"></div>
+        <div class="header-text">
+          <h1>MPAC Membership Hub</h1>
+          <div class="light-motto"><i class="fas fa-church"></i> The Difference we Need</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 15px; align-items: center;">
+        <div class="stats-badge"><i class="fas fa-users"></i> <span id="totalMembersCount">0</span> Members</div>
+        <div class="sync-status" id="syncStatus"><i class="fas fa-circle"></i> Live</div>
+      </div>
+    </div>
+
+    <div class="nav-horizontal">
+      <button class="nav-pill active" data-tab="register">📝 Register</button>
+      <button class="nav-pill" data-tab="directory">📋 Directory</button>
+      <button class="nav-pill" data-tab="dashboard">📊 Dashboard</button>
+    </div>
+
+    <!-- REGISTRATION TAB -->
+    <div id="registerTab" class="tab-content active">
+      <div class="glass-card">
+        <div class="card-header"><h3><i class="fas fa-pen-ruler"></i> Member Registration Form</h3><button class="btn-outline" id="resetFormBtn"><i class="fas fa-undo-alt"></i> Clear Form</button></div>
+        <form id="memberForm">
+          <div class="form-grid">
+            <div class="form-section">
+              <h4><i class="fas fa-user-circle" style="color:var(--primary);"></i> Personal Information</h4>
+              <div class="input-group"><label>Full Name & Surname *</label><input type="text" id="fullName" required></div>
+              <div class="input-group"><label>Date of Birth *</label><input type="date" id="dob" required></div>
+              <div class="input-group"><label>Marital Status</label><select id="maritalStatus"><option>Married</option><option>Single</option><option>Widowed</option><option>Separated</option></select></div>
+              <div class="input-group"><label>Place of Birth</label><input type="text" id="placeOfBirth"></div>
+              <div class="input-group"><label>ID Number *</label><input type="text" id="idNumber" required></div>
+              <div class="input-group"><label>Postal Address</label><input type="text" id="postalAddress"></div>
+              <div class="input-group"><label>Physical Address</label><input type="text" id="physicalAddress"></div>
+              <div class="phone-row"><div class="input-group"><label>Home</label><input type="tel" id="phoneHome"></div><div class="input-group"><label>Work</label><input type="tel" id="phoneWork"></div><div class="input-group"><label>Cell *</label><input type="tel" id="phoneCell" required></div></div>
+              <div class="input-group"><label>Email *</label><input type="email" id="email" required></div>
+              <div class="input-group"><label>Next of Kin</label><input type="text" id="nextOfKin"></div>
+              <div class="input-group"><label>Children count</label><input type="number" id="childrenCount" min="0" value="0"></div>
+            </div>
+            <div class="form-section">
+              <h4><i class="fas fa-church" style="color:var(--pink);"></i> Spiritual Information</h4>
+              <div class="input-group"><label>Member of any Christian denomination?</label><div class="radio-group"><label><input type="radio" name="denomMember" value="yes"> Yes</label><label><input type="radio" name="denomMember" value="no" checked> No</label></div></div>
+              <div id="associateChurchGroup" style="display:none;"><div class="input-group"><label>Associate Church/Ministry</label><input type="text" id="associateChurchName"></div></div>
+              <div id="pastorGroup" style="display:none;"><div class="input-group"><label>Pastor’s details</label><textarea id="pastorDetails" rows="2"></textarea></div></div>
+              <div class="input-group"><label>Born again?</label><div class="radio-group"><label><input type="radio" name="bornAgain" value="yes"> Yes</label><label><input type="radio" name="bornAgain" value="no" checked> No</label></div></div>
+              <div id="bornAgainYearGroup" style="display:none;"><div class="input-group"><label>Year born again</label><input type="text" id="bornAgainYear"></div></div>
+              <div class="input-group"><label>What would you like to do in Church?</label><input type="text" id="churchDesire"></div>
+              <div class="input-group"><label>Current involvement</label><textarea id="churchInvolvement" rows="2"></textarea></div>
+              <div class="input-group"><label>Water baptism?</label><div class="radio-group"><label><input type="radio" name="baptised" value="yes"> Yes</label><label><input type="radio" name="baptised" value="no"> No</label></div></div>
+            </div>
+            <div class="form-section">
+              <h4><i class="fas fa-file-signature" style="color:var(--amber);"></i> Declaration & Commitment</h4>
+              <div class="input-group"><label>I, (full name) declare truth *</label><input type="text" id="declarationName" required></div>
+              <div class="input-group"><label>Declaration Date</label><input type="date" id="declarationDate" required></div>
+              <div class="checkbox-label"><input type="checkbox" id="commitmentCheckbox"> <label>I submit to MPAC leadership & activities.</label></div>
+              <div class="inline-note"><i class="fas fa-info-circle"></i> By submitting, you confirm all details are truthful.</div>
+            </div>
+          </div>
+          <div style="padding:0 28px 28px">
+            <button type="submit" class="btn-gold" id="submitBtn"><i class="fas fa-save"></i> Register Member</button>
+            <div style="margin-top:12px"><button type="button" id="cancelEditBtn" class="btn-outline" style="display:none;"><i class="fas fa-times"></i> Cancel Edit</button></div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- DIRECTORY TAB -->
+    <div id="directoryTab" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header"><h3><i class="fas fa-address-book"></i> Member Directory</h3><button class="btn-outline" id="exportCsvBtn"><i class="fas fa-download"></i> Export CSV</button></div>
+        <div class="data-table-wrapper">
+          <table id="membersTable">
+            <thead><tr><th>Full Name</th><th>ID Number</th><th>Email</th><th>Cell</th><th>Baptised</th><th>Actions</th></tr></thead>
+            <tbody id="membersTableBody"><tr><td colspan="6" style="text-align:center;">Loading members......</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div id="dashboardTab" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header"><h3><i class="fas fa-chart-line"></i> Membership Analytics Dashboard</h3><i class="fas fa-brain"></i></div>
+        <div class="filter-bar">
+          <div class="filter-group"><label>From Date</label><input type="date" id="dashFromDate" class="date-input"></div>
+          <div class="filter-group"><label>To Date</label><input type="date" id="dashToDate" class="date-input"></div>
+          <div class="filter-group"><label>Year</label><select id="dashYearFilter" class="filter-select"><option value="all">All Years</option></select></div>
+          <div class="filter-group"><label>Month</label><select id="dashMonthFilter" class="filter-select"><option value="all">All Months</option></select></div>
+          <button class="btn-outline" id="resetDashFilters"><i class="fas fa-undo-alt"></i> Reset</button>
+        </div>
+        <div class="kpi-grid" id="kpiContainer"></div>
+        <div class="chart-grid">
+          <div class="glass-card"><div class="card-header">📈 Monthly Registration Trend (Line)</div><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
+          <div class="glass-card"><div class="card-header">📊 Monthly Registrations (Bar)</div><div class="chart-container"><canvas id="monthlyBarChart"></canvas></div></div>
+          <div class="glass-card"><div class="card-header">💍 Marital Status</div><div class="chart-container"><canvas id="maritalChart"></canvas></div></div>
+          <div class="glass-card"><div class="card-header">✝️ Born Again vs Baptised</div><div class="chart-container"><canvas id="spiritualChart"></canvas></div></div>
+          <div class="glass-card"><div class="card-header">🏛️ Denomination Membership</div><div class="chart-container"><canvas id="denomChart"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+</div>
+
+<script>
+  Chart.register(ChartDataLabels);
+  
+  // ========== CONFIGURATION ==========
+  const API_BASE = "https://script.google.com/macros/s/AKfycbzO0roUGXv_cozk1hHI-TsPZ5Oq7JWKSc0RXYK-lCava725nQyN_NBMdZBI20-9NH_p/exec";
+  const VALID_USERNAME = "MPAC";
+  const VALID_PASSWORD = "MPAC#2026!";
+
+  // ========== LOGIN ==========
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('mainApp').classList.add('visible');
+      initializeApp();
+    } else {
+      const errorDiv = document.getElementById('loginError');
+      errorDiv.style.display = 'block';
+      setTimeout(() => { errorDiv.style.display = 'none'; }, 2000);
+    }
+  });
+
+  // ========== APP STATE ==========
+  let members = [];
+  let editId = null;
+  let charts = {};
+  let isSaving = false;
+
+  function showToast(msg, isErr = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    toast.style.background = isErr ? '#C2185B' : 'var(--primary-dark)';
+    setTimeout(() => toast.style.display = 'none', 3000);
+  }
+
+  function setSyncStatus(online) {
+    const statusDiv = document.getElementById('syncStatus');
+    if (online) {
+      statusDiv.innerHTML = '<i class="fas fa-circle"></i> Live';
+      statusDiv.style.background = 'rgba(0,0,0,0.4)';
+    } else {
+      statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Offline (local)';
+      statusDiv.style.background = '#C2185B';
+    }
+  }
+
+  async function fetchMembers() {
+    try {
+      setSyncStatus(true);
+      const res = await fetch(`${API_BASE}?action=list&_=${Date.now()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json.status === 'success') {
+        members = json.data || [];
+        localStorage.setItem('mpac_members_backup', JSON.stringify(members));
+        setSyncStatus(true);
+      } else {
+        throw new Error(json.error || 'Unknown error');
+      }
+    } catch (err) {
+      console.warn('API fetch failed, loading from localStorage', err);
+      setSyncStatus(false);
+      const backup = localStorage.getItem('mpac_members_backup');
+      members = backup ? JSON.parse(backup) : [];
+      if (members.length) showToast('Using offline cache - sync will resume when online', true);
+      else showToast('Unable to connect to server. Check script deployment.', true);
+    }
+    renderDirectory();
+    updateDashboard();
+    updateCounters();
+    populateYearMonthFilters();
+  }
+
+  async function addMember(data) {
+    try {
+      await fetch(API_BASE, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ action: 'add', ...data }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return true;
+    } catch (err) {
+      console.warn('Add member error:', err);
+      return false;
+    }
+  }
+
+  async function updateMember(id, data) {
+    try {
+      await fetch(API_BASE, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ action: 'update', id, ...data }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return true;
+    } catch (err) {
+      console.warn('Update member error:', err);
+      return false;
+    }
+  }
+
+  async function deleteMember(id) {
+    if (!confirm('⚠️ Permanently delete this member? This cannot be undone.')) return;
+    try {
+      await fetch(`${API_BASE}?action=delete&id=${id}`, { mode: 'no-cors' });
+      await fetchMembers();
+      showToast('Member deleted');
+      if (editId === id) cancelEdit();
+    } catch (err) {
+      showToast('Error deleting - check connection', true);
+    }
+  }
+
+  function renderDirectory() {
+    const tbody = document.getElementById('membersTableBody');
+    if (!members.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">📋 No members yet. Register above.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = members.map(m => `
+      <tr>
+        <td><strong>${escapeHtml(m.fullName)}</strong></td>
+        <td>${escapeHtml(m.idNumber)}</td>
+        <td>${escapeHtml(m.email)}</td>
+        <td>${escapeHtml(m.phoneCell)}</td>
+        <td>${m.isBaptised === 'yes' ? '✅ Baptised' : (m.isBaptised === 'no' ? '❌ Not baptised' : '—')}</td>
+        <td class="member-actions">
+          <i class="fas fa-edit" onclick='editMember("${m.id}")'></i>
+          <i class="fas fa-trash-alt" onclick='deleteMember("${m.id}")'></i>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  window.editMember = function(id) {
+    const m = members.find(x => x.id === id);
+    if (!m) return;
+    editId = id;
+    document.getElementById('fullName').value = m.fullName || '';
+    document.getElementById('dob').value = m.dob || '';
+    document.getElementById('maritalStatus').value = m.maritalStatus || 'Married';
+    document.getElementById('placeOfBirth').value = m.placeOfBirth || '';
+    document.getElementById('idNumber').value = m.idNumber || '';
+    document.getElementById('postalAddress').value = m.postalAddress || '';
+    document.getElementById('physicalAddress').value = m.physicalAddress || '';
+    document.getElementById('phoneHome').value = m.phoneHome || '';
+    document.getElementById('phoneWork').value = m.phoneWork || '';
+    document.getElementById('phoneCell').value = m.phoneCell || '';
+    document.getElementById('email').value = m.email || '';
+    document.getElementById('nextOfKin').value = m.nextOfKin || '';
+    document.getElementById('childrenCount').value = m.childrenCount || 0;
+    if (m.memberOfDenomination === 'yes') document.querySelector('input[name="denomMember"][value="yes"]').checked = true;
+    else document.querySelector('input[name="denomMember"][value="no"]').checked = true;
+    toggleDenominationFields();
+    document.getElementById('associateChurchName').value = m.associateChurchName || '';
+    document.getElementById('pastorDetails').value = m.pastorDetails || '';
+    if (m.isBornAgain === 'yes') document.querySelector('input[name="bornAgain"][value="yes"]').checked = true;
+    else document.querySelector('input[name="bornAgain"][value="no"]').checked = true;
+    toggleBornAgainYear();
+    document.getElementById('bornAgainYear').value = m.bornAgainYear || '';
+    document.getElementById('churchDesire').value = m.churchDesire || '';
+    document.getElementById('churchInvolvement').value = m.churchInvolvement || '';
+    if (m.isBaptised === 'yes') document.querySelector('input[name="baptised"][value="yes"]').checked = true;
+    else if (m.isBaptised === 'no') document.querySelector('input[name="baptised"][value="no"]').checked = true;
+    document.getElementById('declarationName').value = m.declarationName || '';
+    document.getElementById('declarationDate').value = m.declarationDate || '';
+    document.getElementById('commitmentCheckbox').checked = m.commitmentAgreed === true;
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-edit"></i> Update Member';
+    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+    showToast('✏️ Editing mode – make changes and click Update');
+  };
+
+  window.deleteMember = deleteMember;
+
+  function cancelEdit() {
+    editId = null;
+    resetForm();
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save"></i> Register Member';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+  }
+
+  function resetForm() {
+    document.getElementById('memberForm').reset();
+    document.getElementById('declarationDate').valueAsDate = new Date();
+    document.getElementById('childrenCount').value = 0;
+    document.querySelector('input[name="denomMember"][value="no"]').checked = true;
+    toggleDenominationFields();
+    document.querySelector('input[name="bornAgain"][value="no"]').checked = true;
+    toggleBornAgainYear();
+  }
+
+  function getFormData() {
+    const isDenom = document.querySelector('input[name="denomMember"]:checked').value === 'yes';
+    return {
+      fullName: document.getElementById('fullName').value.trim(),
+      dob: document.getElementById('dob').value,
+      maritalStatus: document.getElementById('maritalStatus').value,
+      placeOfBirth: document.getElementById('placeOfBirth').value,
+      idNumber: document.getElementById('idNumber').value.trim(),
+      postalAddress: document.getElementById('postalAddress').value,
+      physicalAddress: document.getElementById('physicalAddress').value,
+      phoneHome: document.getElementById('phoneHome').value,
+      phoneWork: document.getElementById('phoneWork').value,
+      phoneCell: document.getElementById('phoneCell').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      nextOfKin: document.getElementById('nextOfKin').value,
+      childrenCount: parseInt(document.getElementById('childrenCount').value) || 0,
+      memberOfDenomination: isDenom ? 'yes' : 'no',
+      associateChurchName: isDenom ? document.getElementById('associateChurchName').value : '',
+      pastorDetails: isDenom ? document.getElementById('pastorDetails').value : '',
+      isBornAgain: document.querySelector('input[name="bornAgain"]:checked').value,
+      bornAgainYear: document.getElementById('bornAgainYear').value,
+      churchDesire: document.getElementById('churchDesire').value,
+      churchInvolvement: document.getElementById('churchInvolvement').value,
+      isBaptised: document.querySelector('input[name="baptised"]:checked')?.value || '',
+      declarationName: document.getElementById('declarationName').value.trim(),
+      declarationDate: document.getElementById('declarationDate').value,
+      commitmentAgreed: document.getElementById('commitmentCheckbox').checked
+    };
+  }
+
+  function validateFormData(data) {
+    if (!data.fullName) { showToast('Full name is required', true); return false; }
+    if (!data.idNumber) { showToast('ID Number is required', true); return false; }
+    if (!data.phoneCell) { showToast('Cell phone number is required', true); return false; }
+    if (!data.email || !data.email.includes('@')) { showToast('Valid email required', true); return false; }
+    if (!data.dob) { showToast('Date of Birth required', true); return false; }
+    if (!data.declarationName) { showToast('Declaration name required', true); return false; }
+    if (!data.commitmentAgreed) { showToast('You must agree to the declaration', true); return false; }
+    return true;
+  }
+
+  document.getElementById('memberForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (isSaving) return;
+    const data = getFormData();
+    if (!validateFormData(data)) return;
+
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Saving...';
+    isSaving = true;
+
+    try {
+      let success = false;
+      if (editId) success = await updateMember(editId, data);
+      else success = await addMember(data);
+      await fetchMembers();
+      showToast(editId ? 'Member updated!' : 'Member registered!');
+      if (editId) cancelEdit();
+      else resetForm();
+    } catch (err) {
+      console.error(err);
+      showToast('Network error. Please try again.', true);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+      isSaving = false;
+    }
+  });
+
+  function filterMembersByDate() {
+    const from = document.getElementById('dashFromDate').value;
+    const to = document.getElementById('dashToDate').value;
+    const year = document.getElementById('dashYearFilter').value;
+    const month = document.getElementById('dashMonthFilter').value;
+    return members.filter(m => {
+      let regDate = new Date(m.registrationDate);
+      if (isNaN(regDate)) return false;
+      if (from && regDate < new Date(from)) return false;
+      if (to && regDate > new Date(to)) return false;
+      if (year !== 'all' && regDate.getFullYear().toString() !== year) return false;
+      if (month !== 'all' && regDate.getMonth().toString() !== month) return false;
+      return true;
+    });
+  }
+
+  // DASHBOARD WITH COLOURFUL KPI CARDS, LINE TREND, AND NEW MONTHLY BAR CHART
+  function updateDashboard() {
+    const filtered = filterMembersByDate();
+    const total = filtered.length;
+    const baptisedCount = filtered.filter(m => m.isBaptised === 'yes').length;
+    const bornAgainCount = filtered.filter(m => m.isBornAgain === 'yes').length;
+    const avgChildren = total ? (filtered.reduce((s,m)=>s+(parseInt(m.childrenCount)||0),0)/total).toFixed(1) : 0;
+    const memberDenom = filtered.filter(m => m.memberOfDenomination === 'yes').length;
+
+    // Colourful KPI cards
+    document.getElementById('kpiContainer').innerHTML = `
+      <div class="kpi-box kpi-total"><div class="kpi-icon"><i class="fas fa-users"></i></div><div class="kpi-val">${total}</div><div class="kpi-label">Total Members</div></div>
+      <div class="kpi-box kpi-baptised"><div class="kpi-icon"><i class="fas fa-dove"></i></div><div class="kpi-val">${baptisedCount}</div><div class="kpi-label">Baptised</div></div>
+      <div class="kpi-box kpi-bornagain"><div class="kpi-icon"><i class="fas fa-pray"></i></div><div class="kpi-val">${bornAgainCount}</div><div class="kpi-label">Born Again</div></div>
+      <div class="kpi-box kpi-children"><div class="kpi-icon"><i class="fas fa-child"></i></div><div class="kpi-val">${avgChildren}</div><div class="kpi-label">Avg Children</div></div>
+      <div class="kpi-box kpi-denom"><div class="kpi-icon"><i class="fas fa-church"></i></div><div class="kpi-val">${memberDenom}</div><div class="kpi-label">Denomination Member</div></div>
+    `;
+
+    // Prepare monthly data (aggregated by year-month)
+    let monthlyMap = new Map();
+    filtered.forEach(m => {
+      let d = new Date(m.registrationDate);
+      if (!isNaN(d)) {
+        let key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        let label = `${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
+        if (!monthlyMap.has(key)) monthlyMap.set(key, { label, count: 0 });
+        monthlyMap.get(key).count++;
+      }
+    });
+    let sortedMonths = Array.from(monthlyMap.keys()).sort();
+    let monthLabels = sortedMonths.map(k => monthlyMap.get(k).label);
+    let monthCounts = sortedMonths.map(k => monthlyMap.get(k).count);
+
+    // Line chart (existing)
+    if (charts.trend) charts.trend.destroy();
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+      charts.trend = new Chart(trendCtx, {
+        type: 'line',
+        data: { labels: monthLabels, datasets: [{ label: 'Registrations', data: monthCounts, borderColor: '#0033CC', backgroundColor: 'rgba(0,51,204,0.05)', fill: true, tension: 0.3 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { datalabels: { align: 'top', offset: 4, formatter: (value) => value, font: { weight: 'bold', size: 11 } } }
+        }
+      });
+    }
+
+    // New monthly bar chart
+    if (charts.monthlyBar) charts.monthlyBar.destroy();
+    const barCtx = document.getElementById('monthlyBarChart');
+    if (barCtx) {
+      charts.monthlyBar = new Chart(barCtx, {
+        type: 'bar',
+        data: { labels: monthLabels, datasets: [{ label: 'Registrations', data: monthCounts, backgroundColor: '#FFA000', borderRadius: 8 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { datalabels: { anchor: 'end', align: 'top', offset: 2, formatter: (value) => value, font: { weight: 'bold', size: 11 } } }
+        }
+      });
+    }
+
+    // Marital status doughnut
+    let maritalCount = { Married:0, Single:0, Widowed:0, Separated:0 };
+    filtered.forEach(m => { let s = m.maritalStatus; if (maritalCount.hasOwnProperty(s)) maritalCount[s]++; });
+    if (charts.marital) charts.marital.destroy();
+    const maritalCtx = document.getElementById('maritalChart');
+    if (maritalCtx) {
+      charts.marital = new Chart(maritalCtx, {
+        type: 'doughnut',
+        data: { labels: Object.keys(maritalCount), datasets: [{ data: Object.values(maritalCount), backgroundColor: ['#0033CC','#C2185B','#FFA000','#E91E63'] }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { datalabels: { color: 'white', font: { weight: 'bold', size: 14 }, formatter: (value, ctx) => { let total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); let percent = ((value/total)*100).toFixed(1); return `${value}\n(${percent}%)`; } } }
+        }
+      });
+    }
+
+    // Born Again vs Baptised
+    if (charts.spiritual) charts.spiritual.destroy();
+    const spiritualCtx = document.getElementById('spiritualChart');
+    if (spiritualCtx) {
+      charts.spiritual = new Chart(spiritualCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Born Again', 'Baptised'],
+          datasets: [
+            { label: 'Yes', data: [bornAgainCount, baptisedCount], backgroundColor: '#0033CC', borderRadius: 8 },
+            { label: 'No', data: [total - bornAgainCount, total - baptisedCount], backgroundColor: '#C2185B', borderRadius: 8 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { datalabels: { anchor: 'center', align: 'center', offset: 0, color: 'white', font: { weight: 'bold', size: 12 }, formatter: (value) => value } }
+        }
+      });
+    }
+
+    // Denomination
+    if (charts.denom) charts.denom.destroy();
+    const denomCtx = document.getElementById('denomChart');
+    if (denomCtx) {
+      charts.denom = new Chart(denomCtx, {
+        type: 'pie',
+        data: { labels: ['Denomination Member', 'Not Member'], datasets: [{ data: [memberDenom, total - memberDenom], backgroundColor: ['#FFA000','#475569'] }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { datalabels: { color: 'white', font: { weight: 'bold', size: 14 }, formatter: (value, ctx) => { let total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); let percent = ((value/total)*100).toFixed(1); return `${value}\n(${percent}%)`; } } }
+        }
+      });
+    }
+  }
+
+  function populateYearMonthFilters() {
+    const years = [...new Set(members.map(m => new Date(m.registrationDate).getFullYear()).filter(y => !isNaN(y)))].sort();
+    const yearSel = document.getElementById('dashYearFilter');
+    if (yearSel) yearSel.innerHTML = '<option value="all">All Years</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
+    const monthSel = document.getElementById('dashMonthFilter');
+    if (monthSel) monthSel.innerHTML = '<option value="all">All Months</option>' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+  }
+
+  function resetDashboardFilters() {
+    document.getElementById('dashFromDate').value = '';
+    document.getElementById('dashToDate').value = '';
+    document.getElementById('dashYearFilter').value = 'all';
+    document.getElementById('dashMonthFilter').value = 'all';
+    updateDashboard();
+  }
+
+  function toggleDenominationFields() {
+    const isMember = document.querySelector('input[name="denomMember"]:checked').value === 'yes';
+    document.getElementById('associateChurchGroup').style.display = isMember ? 'block' : 'none';
+    document.getElementById('pastorGroup').style.display = isMember ? 'block' : 'none';
+    if (!isMember) {
+      document.getElementById('pastorDetails').value = '';
+      document.getElementById('associateChurchName').value = '';
+    }
+  }
+  function toggleBornAgainYear() {
+    const isBorn = document.querySelector('input[name="bornAgain"]:checked').value === 'yes';
+    document.getElementById('bornAgainYearGroup').style.display = isBorn ? 'block' : 'none';
+    if (!isBorn) document.getElementById('bornAgainYear').value = '';
+  }
+
+  function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+  function updateCounters() { document.getElementById('totalMembersCount').innerText = members.length; }
+
+  function initializeApp() {
+    document.querySelectorAll('input[name="denomMember"]').forEach(r => r.addEventListener('change', toggleDenominationFields));
+    document.querySelectorAll('input[name="bornAgain"]').forEach(r => r.addEventListener('change', toggleBornAgainYear));
+    document.getElementById('resetDashFilters')?.addEventListener('click', resetDashboardFilters);
+    document.getElementById('dashFromDate')?.addEventListener('change', updateDashboard);
+    document.getElementById('dashToDate')?.addEventListener('change', updateDashboard);
+    document.getElementById('dashYearFilter')?.addEventListener('change', updateDashboard);
+    document.getElementById('dashMonthFilter')?.addEventListener('change', updateDashboard);
+    document.getElementById('exportCsvBtn')?.addEventListener('click', () => {
+      if (!members.length) { showToast('No members to export', true); return; }
+      const headers = ['Full Name','ID Number','Email','Cell','Phone Home','Phone Work','DOB','Marital Status','Place of Birth','Born Again','Baptised','Declaration Date','Registration Date'];
+      const rows = members.map(m => [m.fullName, m.idNumber, m.email, m.phoneCell, m.phoneHome, m.phoneWork, m.dob, m.maritalStatus, m.placeOfBirth, m.isBornAgain, m.isBaptised, m.declarationDate, m.registrationDate]);
+      const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type: 'text/csv'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `MPAC_Members_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast('CSV exported');
+    });
+    document.getElementById('resetFormBtn')?.addEventListener('click', () => cancelEdit());
+    document.getElementById('cancelEditBtn')?.addEventListener('click', cancelEdit);
+
+    document.querySelectorAll('.nav-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.getElementById(tab + 'Tab').classList.add('active');
+        document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (tab === 'dashboard') updateDashboard();
+        else if (tab === 'directory') renderDirectory();
+      });
+    });
+
+    toggleDenominationFields();
+    toggleBornAgainYear();
+    document.getElementById('declarationDate').valueAsDate = new Date();
+    fetchMembers();
+  }
+</script>
+</body>
+</html>
