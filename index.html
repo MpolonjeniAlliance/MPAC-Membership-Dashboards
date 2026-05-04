@@ -82,6 +82,8 @@
     .card-header { padding: 16px 24px; background: rgba(0,0,0,0.02); border-bottom: 2px solid var(--amber); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; padding: 28px; }
     .form-section { background: #f8fafc; border-radius: 24px; padding: 20px; border-left: 4px solid var(--primary); }
+    .form-section h4 { margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+    .contact-header { margin: 1rem 0 0.5rem 0; font-weight: 700; color: var(--primary-dark); font-size: 0.9rem; border-left: 3px solid var(--amber); padding-left: 10px; }
     .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px 14px; background: white; border: 1px solid #e2e8f0; border-radius: 18px; font-family: inherit; }
     .radio-group { display: flex; gap: 24px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
     .phone-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
@@ -164,7 +166,7 @@
       <button class="nav-pill" data-tab="photos">🖼️ Photos</button>
     </div>
 
-    <!-- REGISTRATION TAB: EXACT MATCH TO PROVIDED HTML -->
+    <!-- REGISTRATION TAB: EXACT MATCH TO PROVIDED HTML + CONTACT HEADER ABOVE HOME/WORK/CELL -->
     <div id="registerTab" class="tab-content active">
       <div class="glass-card">
         <div class="card-header"><h3><i class="fas fa-pen-ruler"></i> Member Registration Form</h3><button class="btn-outline" id="resetFormBtn"><i class="fas fa-undo-alt"></i> Clear Form</button></div>
@@ -179,7 +181,13 @@
               <div class="input-group"><label>ID Number *</label><input type="text" id="idNumber" required></div>
               <div class="input-group"><label>Postal Address</label><input type="text" id="postalAddress"></div>
               <div class="input-group"><label>Physical Address</label><input type="text" id="physicalAddress"></div>
-              <div class="phone-row"><div class="input-group"><label>Home</label><input type="tel" id="phoneHome"></div><div class="input-group"><label>Work</label><input type="tel" id="phoneWork"></div><div class="input-group"><label>Cell *</label><input type="tel" id="phoneCell" required></div></div>
+              <!-- CONTACT DETAILS HEADER inserted above Home/Work/Cell row -->
+              <div class="contact-header"><i class="fas fa-phone-alt" style="margin-right: 6px; color: var(--amber);"></i> Contact Details</div>
+              <div class="phone-row">
+                <div class="input-group"><label>Home</label><input type="tel" id="phoneHome"></div>
+                <div class="input-group"><label>Work</label><input type="tel" id="phoneWork"></div>
+                <div class="input-group"><label>Cell *</label><input type="tel" id="phoneCell" required></div>
+              </div>
               <div class="input-group"><label>Email *</label><input type="email" id="email" required></div>
               <div class="input-group"><label>Next of Kin</label><input type="text" id="nextOfKin"></div>
               <div class="input-group"><label>Children count</label><input type="number" id="childrenCount" min="0" value="0"></div>
@@ -220,7 +228,7 @@
 
     <!-- DIRECTORY TAB -->
     <div id="directoryTab" class="tab-content">
-      <div class="glass-card"><div class="card-header"><h3><i class="fas fa-address-book"></i> Member Directory</h3><button class="btn-outline" id="exportCsvBtn"><i class="fas fa-download"></i> Export CSV</button></div><div class="data-table-wrapper"><table id="membersTable"><thead><tr><th>Full Name</th><th>ID Number</th><th>Email</th><th>Cell</th><th>Baptised</th><th>Actions</th><tr></thead><tbody id="membersTableBody"><tr><td colspan="6">Loading members...</td></tr></tbody></table></div></div>
+      <div class="glass-card"><div class="card-header"><h3><i class="fas fa-address-book"></i> Member Directory</h3><button class="btn-outline" id="exportCsvBtn"><i class="fas fa-download"></i> Export CSV</button></div><div class="data-table-wrapper"><table id="membersTable"><thead><tr><th>Full Name</th><th>ID Number</th><th>Email</th><th>Cell</th><th>Baptised</th><th>Actions</th></tr></thead><tbody id="membersTableBody"><tr><td colspan="6">Loading members...</td></tr></tbody></table></div></div>
     </div>
 
     <!-- DASHBOARD TAB -->
@@ -305,7 +313,7 @@
   function renderDirectory() {
     const tbody = document.getElementById('membersTableBody');
     if (!members.length) { tbody.innerHTML = '<tr><td colspan="6">No members yet. Register above.</td></tr>'; return; }
-    tbody.innerHTML = members.map(m => `<tr><td><strong>${escapeHtml(m.fullName)}</strong></td><td>${escapeHtml(m.idNumber)}</td><td>${escapeHtml(m.email)}</td><td>${escapeHtml(m.phoneCell)}</td><td>${m.isBaptised === 'yes' ? '✅ Baptised' : (m.isBaptised === 'no' ? '❌ Not baptised' : '—')}</td><td class="member-actions"><i class="fas fa-edit" onclick='editMember("${m.id}")'></i><i class="fas fa-trash-alt" onclick='deleteMember("${m.id}")'></i></td></tr>`).join('');
+    tbody.innerHTML = members.map(m => `<tr><td>${escapeHtml(m.fullName)}</td><td>${escapeHtml(m.idNumber)}</td><td>${escapeHtml(m.email)}</td><td>${escapeHtml(m.phoneCell)}</td><td>${m.isBaptised === 'yes' ? '✅ Baptised' : (m.isBaptised === 'no' ? '❌ Not baptised' : '—')}</td><td class="member-actions"><i class="fas fa-edit" onclick='editMember("${m.id}")'></i><i class="fas fa-trash-alt" onclick='deleteMember("${m.id}")'></i></td></tr>`).join('');
   }
 
   function renderPhotoGallery() {
