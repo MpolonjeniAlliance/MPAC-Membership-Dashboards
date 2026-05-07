@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>MPAC Member Registration | Cloud Sync</title>
+  <title>MPAC Member Registration | Full Edit Support & Type Filter</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -69,7 +69,7 @@
     .btn-outline { background: white; border: 1px solid var(--primary); padding: 8px 20px; border-radius: 60px; color: var(--primary); font-weight: 600; cursor: pointer; transition: 0.2s; }
     .btn-outline:hover { background: var(--primary); color: white; }
     .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; background: var(--primary); padding: 12px 20px; border-radius: 60px; color: white; }
-    .filter-bar input, .filter-bar select { padding: 8px 16px; border-radius: 40px; border: none; background: white; }
+    .filter-bar input, .filter-bar select { padding: 8px 16px; border-radius: 40px; border: none; background: white; color: #333; }
     .epic-table { width: 100%; border-collapse: collapse; }
     .epic-table th { background: var(--primary-soft); color: var(--primary); padding: 14px 12px; text-align: left; }
     .epic-table td { padding: 14px 12px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
@@ -128,11 +128,16 @@
     <button class="tab-btn" data-tab="childrenTab"><i class="fas fa-child"></i> Children Registration</button>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- DASHBOARD with Member Type Filter (All Members / Church / Children) -->
   <div id="dashboardTab" class="tab-pane active">
     <div class="glass-card">
       <div class="filter-bar">
-        <input type="date" id="fromDate"> to <input type="date" id="toDate">
+        <select id="memberTypeFilter">
+          <option value="all">All Members</option>
+          <option value="church">Church Members</option>
+          <option value="child">Children</option>
+        </select>
+        <input type="date" id="fromDate" placeholder="From"> to <input type="date" id="toDate" placeholder="To">
         <input type="month" id="monthFilter">
         <select id="yearFilter"><option value="">All Years</option></select>
         <button id="applyFilters" class="btn-outline">Apply</button>
@@ -252,12 +257,10 @@
   let editChurchId = null, editChildId = null;
   let currentPhotoBase64 = null, currentChildPhotoBase64 = null;
 
-  // Helper: update header summary
   function updateHeaderSummary() {
     document.getElementById('headerSummary').innerHTML = `Church members: ${churchMembers.length} | Children: ${children.length}`;
   }
 
-  // Refresh all UI from current arrays
   function refreshUI() {
     allPersons = [...churchMembers.map(m => ({ ...m, type: 'church' })), ...children.map(c => ({ ...c, type: 'child' }))];
     updateHeaderSummary();
@@ -266,86 +269,38 @@
     if (document.getElementById('galleryTab').classList.contains('active')) renderGallery();
   }
 
-  // Fetch data from API
+  // API calls
   async function fetchChurchMembers() {
     try {
       const res = await fetch(`${API_BASE}?action=list&_=${Date.now()}`);
       const json = await res.json();
-      if (json.status === 'success' && Array.isArray(json.data)) {
-        churchMembers = json.data;
-      } else {
-        throw new Error('Invalid response');
-      }
-    } catch (err) {
-      console.error('Fetch church members error:', err);
-      showToast('Failed to fetch church members from server', true);
-      churchMembers = [];
-    }
+      if (json.status === 'success' && Array.isArray(json.data)) churchMembers = json.data;
+      else throw new Error();
+    } catch { churchMembers = []; }
   }
-
   async function fetchChildren() {
     try {
       const res = await fetch(`${API_BASE}?action=listChildren&_=${Date.now()}`);
       const json = await res.json();
-      if (json.status === 'success' && Array.isArray(json.data)) {
-        children = json.data;
-      } else {
-        throw new Error('Invalid response');
-      }
-    } catch (err) {
-      console.error('Fetch children error:', err);
-      showToast('Failed to fetch children from server', true);
-      children = [];
-    }
+      if (json.status === 'success' && Array.isArray(json.data)) children = json.data;
+      else throw new Error();
+    } catch { children = []; }
   }
-
   async function loadAllData() {
-    showToast('Loading data from server...');
+    showToast('Loading data...');
     await Promise.all([fetchChurchMembers(), fetchChildren()]);
     refreshUI();
     populateYearFilter();
-    showToast('Data loaded successfully');
+    showToast('Data loaded');
   }
+  async function addChurchMember(data) { try { await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'add', ...data }) }); return true; } catch { return false; } }
+  async function updateChurchMember(id, data) { try { await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'update', id, ...data }) }); return true; } catch { return false; } }
+  async function deleteChurchMember(id) { try { await fetch(`${API_BASE}?action=delete&id=${id}`, { mode: 'no-cors' }); return true; } catch { return false; } }
+  async function addChild(data) { try { await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'addChild', ...data }) }); return true; } catch { return false; } }
+  async function updateChild(id, data) { try { await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'updateChild', id, ...data }) }); return true; } catch { return false; } }
+  async function deleteChild(id) { try { await fetch(`${API_BASE}?action=deleteChild&id=${id}`, { mode: 'no-cors' }); return true; } catch { return false; } }
 
-  // API write operations (no-cors, we assume success and then refresh)
-  async function addChurchMember(data) {
-    try {
-      await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'add', ...data }) });
-      return true;
-    } catch (e) { return false; }
-  }
-  async function updateChurchMember(id, data) {
-    try {
-      await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'update', id, ...data }) });
-      return true;
-    } catch (e) { return false; }
-  }
-  async function deleteChurchMember(id) {
-    try {
-      await fetch(`${API_BASE}?action=delete&id=${id}`, { mode: 'no-cors' });
-      return true;
-    } catch (e) { return false; }
-  }
-  async function addChild(data) {
-    try {
-      await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'addChild', ...data }) });
-      return true;
-    } catch (e) { return false; }
-  }
-  async function updateChild(id, data) {
-    try {
-      await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'updateChild', id, ...data }) });
-      return true;
-    } catch (e) { return false; }
-  }
-  async function deleteChild(id) {
-    try {
-      await fetch(`${API_BASE}?action=deleteChild&id=${id}`, { mode: 'no-cors' });
-      return true;
-    } catch (e) { return false; }
-  }
-
-  // Dashboard & helpers
+  // Dashboard & filters
   function getAgeGroup(dobString) {
     if (!dobString) return 'Unknown';
     let age = new Date().getFullYear() - new Date(dobString).getFullYear();
@@ -364,13 +319,15 @@
     if (age <= 59) return '55-59';
     return '60+';
   }
-
   function getFilteredData() {
+    let memberType = document.getElementById('memberTypeFilter').value;
     let from = document.getElementById('fromDate').value ? new Date(document.getElementById('fromDate').value) : null;
     let to = document.getElementById('toDate').value ? new Date(document.getElementById('toDate').value) : null;
     let monthVal = document.getElementById('monthFilter').value;
     let yearVal = document.getElementById('yearFilter').value;
     return allPersons.filter(p => {
+      if (memberType === 'church' && p.type !== 'church') return false;
+      if (memberType === 'child' && p.type !== 'child') return false;
       let reg = p.registrationDate ? new Date(p.registrationDate) : null;
       if (!reg) return false;
       if (from && reg < from) return false;
@@ -380,7 +337,6 @@
       return true;
     });
   }
-
   function renderDashboard() {
     let filtered = getFilteredData();
     let churchF = filtered.filter(p => p.type === 'church'), childF = filtered.filter(p => p.type === 'child');
@@ -423,7 +379,7 @@
       let monthName = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleString('default', { month: 'long' });
       tableHtml += `<tr><td>${monthName} ${year}</td><td>${churchCount}</td><td>${childCount}</td><td>${churchCount + childCount}</td></tr>`;
     }
-    tableHtml += '</tbody></table>';
+    tableHtml += '</tbody><table>';
     document.getElementById('monthlyTable').innerHTML = tableHtml;
   }
 
@@ -481,15 +437,11 @@
     let success = false;
     if (type === 'church') success = await deleteChurchMember(id);
     else success = await deleteChild(id);
-    if (success) {
-      showToast('Deleted successfully');
-      await loadAllData();
-    } else {
-      showToast('Delete failed, please try again', true);
-    }
+    if (success) { showToast('Deleted'); await loadAllData(); }
+    else showToast('Delete failed', true);
   };
 
-  // Form helpers (same as before)
+  // Form helpers
   function fillChurchFormForEdit(m) {
     editChurchId = m.id;
     document.getElementById('fullName').value = m.fullName || '';
@@ -598,7 +550,7 @@
     sel.innerHTML = '<option value="">All years</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
   }
 
-  // Submit handlers: send to API then refresh
+  // Submit handlers (fix edit save)
   document.getElementById('churchMemberForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     let btn = document.getElementById('submitChurchBtn');
@@ -641,8 +593,8 @@
     else success = await addChurchMember(data);
     if (success) {
       showToast(editChurchId ? 'Member updated!' : 'Member registered!');
-      await loadAllData();
-      resetChurchFormCompletely();
+      await loadAllData();        // refresh data from server
+      resetChurchFormCompletely(); // clears editChurchId and form
     } else {
       showToast('Error saving, please try again', true);
     }
@@ -687,7 +639,14 @@
   // Event listeners
   document.getElementById('syncDataBtn').addEventListener('click', () => loadAllData());
   document.getElementById('applyFilters').addEventListener('click', renderDashboard);
-  document.getElementById('resetFilters').addEventListener('click', () => { document.getElementById('fromDate').value = ''; document.getElementById('toDate').value = ''; document.getElementById('monthFilter').value = ''; document.getElementById('yearFilter').value = ''; renderDashboard(); });
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    document.getElementById('memberTypeFilter').value = 'all';
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value = '';
+    document.getElementById('monthFilter').value = '';
+    document.getElementById('yearFilter').value = '';
+    renderDashboard();
+  });
   document.getElementById('searchBtn').addEventListener('click', applyDirectoryFiltersAndPaginate);
   document.getElementById('exportCSVBtn').addEventListener('click', () => { let ws = XLSX.utils.json_to_sheet(allPersons.map(p => ({ Name: p.fullName, Gender: p.gender, Phone: p.phoneCell, Email: p.email, Address: p.physicalAddress, Type: p.type }))); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Directory'); XLSX.writeFile(wb, 'MPAC_Directory.xlsx'); showToast('Exported'); });
   document.getElementById('gallerySearchBtn').addEventListener('click', renderGallery);
