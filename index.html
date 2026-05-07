@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>MPAC Member Registration | Full Edit Support & Type Filter</title>
+  <title>MPAC Registration | Camera + File Upload (Image Save Fixed)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -24,8 +24,6 @@
     }
     body { font-family: 'Inter', sans-serif; background: var(--gray-bg); color: var(--text-dark); margin: 0; padding: 0; }
     .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 10% 20%, rgba(59,130,246,0.08), rgba(255,255,255,0)); z-index: -1; }
-    
-    /* Login */
     .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; z-index: 10; }
     .login-card { background: var(--white); border-radius: 48px; padding: 40px; width: 420px; box-shadow: var(--shadow); border: 1px solid var(--border-light); text-align: center; }
     .login-logo { width: 100px; height: 100px; margin: 0 auto 20px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -33,8 +31,6 @@
     .login-card input { width: 100%; padding: 14px 18px; margin: 12px 0; background: var(--white); border: 1px solid var(--border-light); border-radius: 60px; }
     .login-btn { background: var(--primary); border: none; padding: 14px; border-radius: 60px; font-weight: 700; color: white; width: 100%; cursor: pointer; }
     .error-msg { color: #DC2626; margin-top: 12px; }
-    
-    /* Main portal */
     .main-portal { display: none; max-width: 1600px; margin: 0 auto; padding: 20px; }
     .premium-header { background: var(--primary); border-radius: 32px; padding: 16px 28px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; color: white; }
     .logo-circle { width: 50px; height: 50px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; margin-right: 12px; overflow: hidden; }
@@ -55,7 +51,6 @@
     .stat-card:nth-child(3) { border-left-color: #10B981; } .stat-card:nth-child(3) .stat-number { color: #10B981; }
     .stat-card:nth-child(4) { border-left-color: #F59E0B; } .stat-card:nth-child(4) .stat-number { color: #F59E0B; }
     .stat-card:nth-child(5) { border-left-color: #8B5CF6; } .stat-card:nth-child(5) .stat-number { color: #8B5CF6; }
-    
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; }
     .form-section { background: #f8fafc; border-radius: 24px; padding: 20px; border-left: 4px solid var(--primary); }
     .input-group { margin-bottom: 16px; }
@@ -83,6 +78,8 @@
     .theme-selector select { background: transparent; border: none; color: white; font-weight: 500; cursor: pointer; }
     .inline-note { font-size: 0.7rem; color: #64748b; margin-top: 6px; }
     .contact-header { margin: 1rem 0 0.5rem 0; font-weight: 700; color: #0f2b6d; font-size: 0.9rem; border-left: 3px solid #FFA000; padding-left: 10px; }
+    .camera-preview { width: 100%; max-width: 300px; border-radius: 16px; margin-top: 10px; border: 2px solid var(--primary); }
+    .button-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 800px) { .filter-bar { flex-direction: column; align-items: stretch; } .phone-row { grid-template-columns: 1fr; } .form-grid { padding: 16px; } .tab-btn { padding: 6px 16px; font-size: 0.85rem; } }
   </style>
@@ -90,7 +87,6 @@
 <body>
 <div class="bg-animate"></div>
 
-<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="login-container">
   <div class="login-card">
     <div class="login-logo"><img src="https://i.imgur.com/kTumLOY.jpg" alt="MPAC Logo"></div>
@@ -103,7 +99,6 @@
   </div>
 </div>
 
-<!-- MAIN PORTAL -->
 <div id="mainPortal" class="main-portal">
   <div class="premium-header">
     <div style="display: flex; align-items: center; gap: 16px; flex-wrap:wrap;">
@@ -128,7 +123,6 @@
     <button class="tab-btn" data-tab="childrenTab"><i class="fas fa-child"></i> Children Registration</button>
   </div>
 
-  <!-- DASHBOARD with Member Type Filter (All Members / Church / Children) -->
   <div id="dashboardTab" class="tab-pane active">
     <div class="glass-card">
       <div class="filter-bar">
@@ -159,7 +153,6 @@
     </div>
   </div>
 
-  <!-- DIRECTORY -->
   <div id="directoryTab" class="tab-pane">
     <div class="glass-card">
       <div class="filter-bar">
@@ -176,12 +169,10 @@
     </div>
   </div>
 
-  <!-- PHOTO GALLERY -->
   <div id="galleryTab" class="tab-pane">
     <div class="glass-card"><h3>📸 Member Photo Gallery</h3><div class="filter-bar"><input type="text" id="gallerySearch" placeholder="Search by name..." style="flex:2;"><select id="galleryType"><option value="">All Types</option><option value="church">Church</option><option value="child">Child</option></select><button id="gallerySearchBtn" class="btn-outline">Filter</button></div><div id="galleryGrid" class="gallery-grid"></div></div>
   </div>
 
-  <!-- CHURCH REGISTRATION -->
   <div id="churchTab" class="tab-pane">
     <div class="glass-card">
       <div style="display:flex; justify-content:space-between; flex-wrap:wrap; margin-bottom:16px;"><h3>✝️ Church Member Registration</h3><div><button id="resetChurchFormBtn" class="btn-outline" style="margin-right:10px;"><i class="fas fa-undo-alt"></i> Clear Form</button><button id="cancelChurchEdit" class="btn-outline" style="display:none;">Cancel Edit</button></div></div>
@@ -201,7 +192,21 @@
           <div class="input-group"><label>Next of Kin</label><input type="text" id="nextOfKin"></div>
           <div class="input-group"><label>Children count</label><input type="number" id="childrenCount" min="0" value="0"></div>
           <div id="childrenNamesContainer"></div>
-          <div class="input-group"><label><i class="fas fa-camera"></i> Member Photo (Optional)</label><input type="file" id="photoUpload" accept="image/jpeg,image/png,image/jpg"><div id="photoPreviewContainer"></div><small class="inline-note">Max 5MB (Base64 stored)</small></div>
+          <div class="input-group"><label><i class="fas fa-camera"></i> Photo (Optional)</label>
+            <div class="button-group">
+              <button type="button" class="btn-outline" id="openCameraChurchBtn"><i class="fas fa-camera"></i> Take Photo</button>
+              <input type="file" id="photoUpload" accept="image/jpeg,image/png,image/jpg" style="flex:1;">
+            </div>
+            <div id="cameraContainerChurch" style="display:none; margin-top:10px;">
+              <video id="videoChurch" autoplay playsinline style="width:100%; max-width:300px; border-radius:16px; border:2px solid var(--primary);"></video>
+              <div class="button-group" style="margin-top:8px;">
+                <button type="button" class="btn-outline" id="captureChurchBtn"><i class="fas fa-camera-retro"></i> Capture</button>
+                <button type="button" class="btn-outline" id="closeCameraChurchBtn">Close</button>
+              </div>
+            </div>
+            <div id="photoPreviewContainer"></div>
+            <small class="inline-note">Choose file or take photo with camera</small>
+          </div>
         </div><div class="form-section"><h4><i class="fas fa-church"></i> Spiritual Information</h4>
           <div class="input-group"><label>Member of any Christian denomination?</label><div class="radio-group"><label><input type="radio" name="denomMember" value="yes"> Yes</label><label><input type="radio" name="denomMember" value="no" checked> No</label></div></div>
           <div id="associateChurchGroup" style="display:none;"><div class="input-group"><label>Associate Church/Ministry</label><input type="text" id="associateChurchName"></div><div class="input-group"><label>Pastor’s details</label><textarea id="pastorDetails" rows="2"></textarea></div></div>
@@ -220,7 +225,6 @@
     </div>
   </div>
 
-  <!-- CHILDREN REGISTRATION -->
   <div id="childrenTab" class="tab-pane">
     <div class="glass-card">
       <div style="display:flex; justify-content:space-between; flex-wrap:wrap; margin-bottom:16px;"><h3>🧒 Children's Ministry Registration</h3><div><button id="resetChildFormBtn" class="btn-outline"><i class="fas fa-undo-alt"></i> Clear Form</button><button id="cancelChildEdit" class="btn-outline" style="display:none;">Cancel Edit</button></div></div>
@@ -230,7 +234,21 @@
           <div class="input-group"><label>Date of Birth *</label><input type="date" id="childDob" required></div>
           <div class="input-group"><label>Gender *</label><select id="childGender" required><option value="">Select</option><option>Male</option><option>Female</option></select></div>
           <div class="input-group"><label>Area of Residence *</label><input type="text" id="childResidence" required></div>
-          <div class="input-group"><label><i class="fas fa-camera"></i> Child Photo (Optional)</label><input type="file" id="childPhotoUpload" accept="image/*"><div id="childPhotoPreviewContainer"></div><small class="inline-note">Max 5MB</small></div>
+          <div class="input-group"><label><i class="fas fa-camera"></i> Photo (Optional)</label>
+            <div class="button-group">
+              <button type="button" class="btn-outline" id="openCameraChildBtn"><i class="fas fa-camera"></i> Take Photo</button>
+              <input type="file" id="childPhotoUpload" accept="image/jpeg,image/png,image/jpg" style="flex:1;">
+            </div>
+            <div id="cameraContainerChild" style="display:none; margin-top:10px;">
+              <video id="videoChild" autoplay playsinline style="width:100%; max-width:300px; border-radius:16px; border:2px solid var(--primary);"></video>
+              <div class="button-group" style="margin-top:8px;">
+                <button type="button" class="btn-outline" id="captureChildBtn"><i class="fas fa-camera-retro"></i> Capture</button>
+                <button type="button" class="btn-outline" id="closeCameraChildBtn">Close</button>
+              </div>
+            </div>
+            <div id="childPhotoPreviewContainer"></div>
+            <small class="inline-note">Choose file or take photo with camera</small>
+          </div>
         </div><div class="form-section"><h4><i class="fas fa-hands-helping"></i> Guardianship Details</h4>
           <div class="input-group"><label>Primary Guardian Full Name *</label><input type="text" id="primaryGuardian" required></div>
           <div class="input-group"><label>Relationship to Child *</label><select id="guardianRelation" required><option value="">Select relationship</option><option>Biological parent</option><option>Grandparent</option><option>Siblings</option><option>Other relative</option><option>Legal guardian</option></select></div>
@@ -256,11 +274,12 @@
   const rowsPerPage = 20;
   let editChurchId = null, editChildId = null;
   let currentPhotoBase64 = null, currentChildPhotoBase64 = null;
+  let churchVideoStream = null, childVideoStream = null;
 
+  // Helper functions
   function updateHeaderSummary() {
     document.getElementById('headerSummary').innerHTML = `Church members: ${churchMembers.length} | Children: ${children.length}`;
   }
-
   function refreshUI() {
     allPersons = [...churchMembers.map(m => ({ ...m, type: 'church' })), ...children.map(c => ({ ...c, type: 'child' }))];
     updateHeaderSummary();
@@ -383,7 +402,7 @@
     document.getElementById('monthlyTable').innerHTML = tableHtml;
   }
 
-  // Directory functions
+  // Directory functions (unchanged)
   function applyDirectoryFiltersAndPaginate() {
     let search = document.getElementById('searchDirectory').value.toLowerCase();
     let type = document.getElementById('typeFilter').value;
@@ -441,7 +460,7 @@
     else showToast('Delete failed', true);
   };
 
-  // Form helpers
+  // Form helpers (with camera support)
   function fillChurchFormForEdit(m) {
     editChurchId = m.id;
     document.getElementById('fullName').value = m.fullName || '';
@@ -475,8 +494,14 @@
     document.getElementById('declarationName').value = m.declarationName || '';
     document.getElementById('declarationDate').value = m.declarationDate || '';
     document.getElementById('commitmentCheckbox').checked = m.commitmentAgreed === true;
-    if (m.photoBase64) { document.getElementById('photoPreviewContainer').innerHTML = `<img src="data:image/jpeg;base64,${m.photoBase64}" class="photo-preview">`; currentPhotoBase64 = m.photoBase64; }
-    else { document.getElementById('photoPreviewContainer').innerHTML = ''; currentPhotoBase64 = null; }
+    // Load existing photo if any
+    if (m.photoBase64) {
+      document.getElementById('photoPreviewContainer').innerHTML = `<img src="data:image/jpeg;base64,${m.photoBase64}" class="photo-preview">`;
+      currentPhotoBase64 = m.photoBase64;
+    } else {
+      document.getElementById('photoPreviewContainer').innerHTML = '';
+      currentPhotoBase64 = null;
+    }
     document.getElementById('submitChurchBtn').innerHTML = 'Update Church Member';
     document.getElementById('cancelChurchEdit').style.display = 'inline-block';
   }
@@ -490,8 +515,13 @@
     document.getElementById('guardianRelation').value = c.relation || '';
     document.getElementById('schoolName').value = c.schoolName || '';
     if (c.schoolName) { document.getElementById('gradeGroup').style.display = 'block'; document.getElementById('childGrade').value = c.grade || ''; }
-    if (c.photoBase64) { document.getElementById('childPhotoPreviewContainer').innerHTML = `<img src="data:image/jpeg;base64,${c.photoBase64}" class="photo-preview">`; currentChildPhotoBase64 = c.photoBase64; }
-    else { document.getElementById('childPhotoPreviewContainer').innerHTML = ''; currentChildPhotoBase64 = null; }
+    if (c.photoBase64) {
+      document.getElementById('childPhotoPreviewContainer').innerHTML = `<img src="data:image/jpeg;base64,${c.photoBase64}" class="photo-preview">`;
+      currentChildPhotoBase64 = c.photoBase64;
+    } else {
+      document.getElementById('childPhotoPreviewContainer').innerHTML = '';
+      currentChildPhotoBase64 = null;
+    }
     document.getElementById('submitChildBtn').innerHTML = 'Update Child';
     document.getElementById('cancelChildEdit').style.display = 'inline-block';
   }
@@ -525,6 +555,9 @@
     document.getElementById('submitChurchBtn').innerHTML = 'Register Church Member';
     document.getElementById('cancelChurchEdit').style.display = 'none';
     editChurchId = null;
+    // close camera if open
+    if (churchVideoStream) { churchVideoStream.getTracks().forEach(track => track.stop()); churchVideoStream = null; }
+    document.getElementById('cameraContainerChurch').style.display = 'none';
   }
   function cancelChurchEdit() { resetChurchFormCompletely(); }
   function resetChildFormCompletely() {
@@ -535,6 +568,8 @@
     document.getElementById('submitChildBtn').innerHTML = 'Register Child';
     document.getElementById('cancelChildEdit').style.display = 'none';
     editChildId = null;
+    if (childVideoStream) { childVideoStream.getTracks().forEach(track => track.stop()); childVideoStream = null; }
+    document.getElementById('cameraContainerChild').style.display = 'none';
   }
   function cancelChildEdit() { resetChildFormCompletely(); }
   function renderGallery() {
@@ -550,7 +585,87 @@
     sel.innerHTML = '<option value="">All years</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
   }
 
-  // Submit handlers (fix edit save)
+  // Camera logic for Church
+  const openCameraChurch = document.getElementById('openCameraChurchBtn');
+  const cameraContainerChurch = document.getElementById('cameraContainerChurch');
+  const videoChurch = document.getElementById('videoChurch');
+  const captureChurchBtn = document.getElementById('captureChurchBtn');
+  const closeCameraChurch = document.getElementById('closeCameraChurchBtn');
+  openCameraChurch.addEventListener('click', async () => {
+    try {
+      if (churchVideoStream) { churchVideoStream.getTracks().forEach(track => track.stop()); }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoChurch.srcObject = stream;
+      churchVideoStream = stream;
+      cameraContainerChurch.style.display = 'block';
+    } catch (err) { showToast('Camera access denied or not available', true); }
+  });
+  captureChurchBtn.addEventListener('click', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = videoChurch.videoWidth;
+    canvas.height = videoChurch.videoHeight;
+    canvas.getContext('2d').drawImage(videoChurch, 0, 0, canvas.width, canvas.height);
+    const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+    currentPhotoBase64 = base64;
+    document.getElementById('photoPreviewContainer').innerHTML = `<img src="data:image/jpeg;base64,${base64}" class="photo-preview">`;
+    // close camera after capture
+    if (churchVideoStream) { churchVideoStream.getTracks().forEach(track => track.stop()); churchVideoStream = null; }
+    cameraContainerChurch.style.display = 'none';
+    showToast('Photo captured!');
+  });
+  closeCameraChurch.addEventListener('click', () => {
+    if (churchVideoStream) { churchVideoStream.getTracks().forEach(track => track.stop()); churchVideoStream = null; }
+    cameraContainerChurch.style.display = 'none';
+  });
+  // Camera logic for Child
+  const openCameraChild = document.getElementById('openCameraChildBtn');
+  const cameraContainerChild = document.getElementById('cameraContainerChild');
+  const videoChild = document.getElementById('videoChild');
+  const captureChildBtn = document.getElementById('captureChildBtn');
+  const closeCameraChild = document.getElementById('closeCameraChildBtn');
+  openCameraChild.addEventListener('click', async () => {
+    try {
+      if (childVideoStream) { childVideoStream.getTracks().forEach(track => track.stop()); }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoChild.srcObject = stream;
+      childVideoStream = stream;
+      cameraContainerChild.style.display = 'block';
+    } catch (err) { showToast('Camera access denied', true); }
+  });
+  captureChildBtn.addEventListener('click', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = videoChild.videoWidth;
+    canvas.height = videoChild.videoHeight;
+    canvas.getContext('2d').drawImage(videoChild, 0, 0, canvas.width, canvas.height);
+    const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+    currentChildPhotoBase64 = base64;
+    document.getElementById('childPhotoPreviewContainer').innerHTML = `<img src="data:image/jpeg;base64,${base64}" class="photo-preview">`;
+    if (childVideoStream) { childVideoStream.getTracks().forEach(track => track.stop()); childVideoStream = null; }
+    cameraContainerChild.style.display = 'none';
+    showToast('Photo captured!');
+  });
+  closeCameraChild.addEventListener('click', () => {
+    if (childVideoStream) { childVideoStream.getTracks().forEach(track => track.stop()); childVideoStream = null; }
+    cameraContainerChild.style.display = 'none';
+  });
+
+  // File upload handlers
+  document.getElementById('photoUpload').addEventListener('change', e => {
+    let f = e.target.files[0];
+    if (!f) { currentPhotoBase64 = null; document.getElementById('photoPreviewContainer').innerHTML = ''; return; }
+    let r = new FileReader();
+    r.onload = ev => { currentPhotoBase64 = ev.target.result.split(',')[1]; document.getElementById('photoPreviewContainer').innerHTML = `<img src="${ev.target.result}" class="photo-preview">`; };
+    r.readAsDataURL(f);
+  });
+  document.getElementById('childPhotoUpload').addEventListener('change', e => {
+    let f = e.target.files[0];
+    if (!f) { currentChildPhotoBase64 = null; document.getElementById('childPhotoPreviewContainer').innerHTML = ''; return; }
+    let r = new FileReader();
+    r.onload = ev => { currentChildPhotoBase64 = ev.target.result.split(',')[1]; document.getElementById('childPhotoPreviewContainer').innerHTML = `<img src="${ev.target.result}" class="photo-preview">`; };
+    r.readAsDataURL(f);
+  });
+
+  // Submit handlers: for updates, only send photo if a new one was provided
   document.getElementById('churchMemberForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     let btn = document.getElementById('submitChurchBtn');
@@ -582,9 +697,10 @@
       declarationName: document.getElementById('declarationName').value,
       declarationDate: document.getElementById('declarationDate').value,
       commitmentAgreed: document.getElementById('commitmentCheckbox').checked,
-      registrationDate: new Date().toISOString(),
-      photoBase64: currentPhotoBase64 || undefined
+      registrationDate: new Date().toISOString()
     };
+    // Only include photo if a new one was captured/uploaded
+    if (currentPhotoBase64) data.photoBase64 = currentPhotoBase64;
     if (!data.gender) { showToast('Gender required', true); return; }
     btn.disabled = true;
     btn.innerHTML = 'Saving...';
@@ -593,8 +709,8 @@
     else success = await addChurchMember(data);
     if (success) {
       showToast(editChurchId ? 'Member updated!' : 'Member registered!');
-      await loadAllData();        // refresh data from server
-      resetChurchFormCompletely(); // clears editChurchId and form
+      await loadAllData();
+      resetChurchFormCompletely();
     } else {
       showToast('Error saving, please try again', true);
     }
@@ -616,9 +732,9 @@
       primaryGuardian: document.getElementById('primaryGuardian').value,
       relation: document.getElementById('guardianRelation').value,
       schoolName, grade,
-      registrationDate: new Date().toISOString(),
-      photoBase64: currentChildPhotoBase64 || null
+      registrationDate: new Date().toISOString()
     };
+    if (currentChildPhotoBase64) data.photoBase64 = currentChildPhotoBase64;
     if (!data.gender) { showToast('Gender required', true); return; }
     btn.disabled = true;
     btn.innerHTML = 'Saving...';
@@ -636,7 +752,7 @@
     btn.innerHTML = 'Register Child';
   });
 
-  // Event listeners
+  // General event listeners
   document.getElementById('syncDataBtn').addEventListener('click', () => loadAllData());
   document.getElementById('applyFilters').addEventListener('click', renderDashboard);
   document.getElementById('resetFilters').addEventListener('click', () => {
@@ -659,8 +775,6 @@
   document.getElementById('schoolName').addEventListener('input', function () { document.getElementById('gradeGroup').style.display = this.value.trim() !== '' ? 'block' : 'none'; });
   document.querySelectorAll('input[name="denomMember"]').forEach(r => r.addEventListener('change', toggleDenomFields));
   document.querySelectorAll('input[name="bornAgain"]').forEach(r => r.addEventListener('change', toggleBornAgain));
-  document.getElementById('photoUpload').addEventListener('change', e => { let f = e.target.files[0]; if (!f) { currentPhotoBase64 = null; document.getElementById('photoPreviewContainer').innerHTML = ''; return; } let r = new FileReader(); r.onload = ev => { currentPhotoBase64 = ev.target.result.split(',')[1]; document.getElementById('photoPreviewContainer').innerHTML = `<img src="${ev.target.result}" class="photo-preview">`; }; r.readAsDataURL(f); });
-  document.getElementById('childPhotoUpload').addEventListener('change', e => { let f = e.target.files[0]; if (!f) { currentChildPhotoBase64 = null; document.getElementById('childPhotoPreviewContainer').innerHTML = ''; return; } let r = new FileReader(); r.onload = ev => { currentChildPhotoBase64 = ev.target.result.split(',')[1]; document.getElementById('childPhotoPreviewContainer').innerHTML = `<img src="${ev.target.result}" class="photo-preview">`; }; r.readAsDataURL(f); });
   document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => { let tab = btn.dataset.tab; document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active')); document.getElementById(tab).classList.add('active'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); if (tab === 'dashboardTab') renderDashboard(); if (tab === 'directoryTab') applyDirectoryFiltersAndPaginate(); if (tab === 'galleryTab') renderGallery(); }));
   Chart.register(ChartDataLabels);
 
