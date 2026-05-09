@@ -189,7 +189,7 @@
     </div>
   </div>
 
-  <!-- DIRECTORY -->
+  <!-- DIRECTORY (FIXED: children's residence now appears in location column) -->
   <div id="directoryTab" class="tab-pane">
     <div class="glass-card">
       <div class="filter-bar">
@@ -201,7 +201,7 @@
         <button id="resetDirectoryBtn" class="btn-outline"><i class="fas fa-undo-alt"></i> Reset</button>
       </div>
       <div style="overflow-x:auto;">
-        <table class="epic-table"><thead><tr><th>Photo</th><th>Name</th><th>Gender</th><th>Phone</th><th>Email</th><th>Address</th><th>Type</th><th>Actions</th></tr></thead><tbody id="directoryBody"></tbody></table>
+        <table class="epic-table"><thead><tr><th>Photo</th><th>Name</th><th>Gender</th><th>Phone</th><th>Email</th><th>Location (Address/Residence)</th><th>Type</th><th>Actions</th></tr></thead><tbody id="directoryBody"></tbody></table>
       </div>
       <div class="pagination" id="paginationControls" style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;"></div>
     </div>
@@ -306,6 +306,12 @@
   let editChurchId = null, editChildId = null;
   let currentPhotoBase64 = null, currentChildPhotoBase64 = null;
 
+  // Helper: Get location/address text based on member type (church uses physical/postal, child uses residence)
+  function getMemberLocation(p) {
+    if (p.type === 'child') return p.residence || '—';
+    return p.physicalAddress || p.postalAddress || '—';
+  }
+
   function updateHeaderSummary() {
     document.getElementById('headerSummary').innerHTML = `Church members: <span class="count">${churchMembers.length}</span> | Children: <span class="count">${children.length}</span>`;
   }
@@ -359,7 +365,9 @@
   }
 
   function applyDirectoryFiltersAndPaginate() { let search = document.getElementById('searchDirectory').value.toLowerCase(); let type = document.getElementById('typeFilter').value; let gender = document.getElementById('genderFilter').value; let filtered = allPersons.filter(p => (!search || (p.fullName || '').toLowerCase().includes(search) || (p.phoneCell || '').toLowerCase().includes(search) || (p.email || '').toLowerCase().includes(search)) && (!type || p.type === type) && (!gender || p.gender === gender)); filteredDirectory = filtered; currentPage = 1; renderDirectoryPage(); }
-  function renderDirectoryPage() { let start = (currentPage - 1) * rowsPerPage; let pageData = filteredDirectory.slice(start, start + rowsPerPage); let tbody = document.getElementById('directoryBody'); tbody.innerHTML = pageData.map(p => `<tr><td><div class="member-avatar">${p.photoBase64 ? `<img src="data:image/jpeg;base64,${p.photoBase64}" style="width:48px;height:48px;border-radius:24px;object-fit:cover;">` : '<i class="fas fa-user-circle"></i>'}</div></td><td>${p.fullName || '—'}</td><td>${p.gender || '—'}</td><td>${p.phoneCell || p.phoneHome || '—'}</td><td>${p.email || '—'}</td><td>${p.physicalAddress || p.postalAddress || '—'}</td><td><span class="badge">${p.type === 'church' ? 'Church' : 'Child'}</span></td><td><button class="btn-outline btn-sm" onclick="editMember('${p.id}','${p.type}')">Edit</button> <button class="btn-outline btn-sm" onclick="deletePerson('${p.id}','${p.type}')">Delete</button></td></tr>`).join(''); let totalPages = Math.ceil(filteredDirectory.length / rowsPerPage); let controls = ''; if (totalPages > 1) { controls += `<button class="btn-outline" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button><span style="margin:0 12px;">Page ${currentPage} of ${totalPages}</span><button class="btn-outline" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`; } document.getElementById('paginationControls').innerHTML = controls; }
+  
+  function renderDirectoryPage() { let start = (currentPage - 1) * rowsPerPage; let pageData = filteredDirectory.slice(start, start + rowsPerPage); let tbody = document.getElementById('directoryBody'); tbody.innerHTML = pageData.map(p => `<tr><td><div class="member-avatar">${p.photoBase64 ? `<img src="data:image/jpeg;base64,${p.photoBase64}" style="width:48px;height:48px;border-radius:24px;object-fit:cover;">` : '<i class="fas fa-user-circle"></i>'}</div></td><td>${p.fullName || '—'}</td><td>${p.gender || '—'}</td><td>${p.phoneCell || p.phoneHome || '—'}</td><td>${p.email || '—'}</td><td>${getMemberLocation(p)}</td><td><span class="badge">${p.type === 'church' ? 'Church' : 'Child'}</span></td><td><button class="btn-outline btn-sm" onclick="editMember('${p.id}','${p.type}')">Edit</button> <button class="btn-outline btn-sm" onclick="deletePerson('${p.id}','${p.type}')">Delete</button></td></tr>`).join(''); 
+    let totalPages = Math.ceil(filteredDirectory.length / rowsPerPage); let controls = ''; if (totalPages > 1) { controls += `<button class="btn-outline" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button><span style="margin:0 12px;">Page ${currentPage} of ${totalPages}</span><button class="btn-outline" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`; } document.getElementById('paginationControls').innerHTML = controls; }
   window.changePage = function (newPage) { let totalPages = Math.ceil(filteredDirectory.length / rowsPerPage); if (newPage >= 1 && newPage <= totalPages) { currentPage = newPage; renderDirectoryPage(); } };
   window.editMember = function (id, type) { if (type === 'church') { let m = churchMembers.find(x => x.id === id); if (m) fillChurchFormForEdit(m); document.querySelector('[data-tab="churchTab"]').click(); } else { let c = children.find(x => x.id === id); if (c) fillChildFormForEdit(c); document.querySelector('[data-tab="childrenTab"]').click(); } };
   window.deletePerson = async function (id, type) { if (!confirm('Delete permanently?')) return; let success = false; if (type === 'church') success = await deleteChurchMember(id); else success = await deleteChild(id); if (success) { showToast('Deleted'); await loadAllData(); } else showToast('Delete failed', true); };
@@ -424,7 +432,7 @@
   document.getElementById('searchBtn').addEventListener('click', applyDirectoryFiltersAndPaginate);
   document.getElementById('resetDirectoryBtn').addEventListener('click', resetDirectory);
   document.getElementById('resetGalleryBtn').addEventListener('click', resetGalleryFilters);
-  document.getElementById('exportCSVBtn').addEventListener('click', () => { let ws = XLSX.utils.json_to_sheet(allPersons.map(p => ({ Name: p.fullName, Gender: p.gender, Phone: p.phoneCell, Email: p.email, Address: p.physicalAddress, Type: p.type }))); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Directory'); XLSX.writeFile(wb, 'MPAC_Directory.xlsx'); showToast('Exported'); });
+  document.getElementById('exportCSVBtn').addEventListener('click', () => { let ws = XLSX.utils.json_to_sheet(allPersons.map(p => ({ Name: p.fullName, Gender: p.gender, Phone: p.phoneCell, Email: p.email, Location: getMemberLocation(p), Type: p.type === 'church' ? 'Church' : 'Child' }))); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Directory'); XLSX.writeFile(wb, 'MPAC_Directory.xlsx'); showToast('Exported'); });
   document.getElementById('gallerySearchBtn').addEventListener('click', renderGallery);
   document.getElementById('resetChurchFormBtn').addEventListener('click', resetChurchFormCompletely);
   document.getElementById('resetChildFormBtn').addEventListener('click', resetChildFormCompletely);
