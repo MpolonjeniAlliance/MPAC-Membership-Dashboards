@@ -232,7 +232,7 @@
   async function updateChild(id, data) { try { await fetch(API_BASE, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'updateChild', id, ...data }) }); return true; } catch { return false; } }
   async function deleteChild(id) { try { await fetch(`${API_BASE}?action=deleteChild&id=${id}`, { mode: 'no-cors' }); return true; } catch { return false; } }
 
-  // ==================== BIRTHDAY LOGIC (Upcoming 30 days & Last 7 days) ====================
+  // ==================== BIRTHDAY LOGIC (Upcoming 30 days & Last 15 days) ====================
   function daysBetween(date1, date2) { return Math.ceil((date2 - date1) / (1000 * 60 * 60 * 24)); }
   function renderBirthdayWidgets() {
     const today = new Date(); today.setHours(0,0,0,0);
@@ -251,7 +251,7 @@
       }
       let lastBirthday = birthdayThisYear <= today ? birthdayThisYear : new Date(today.getFullYear() - 1, birthMonth, birthDay);
       let daysSinceLast = daysBetween(lastBirthday, today);
-      if (daysSinceLast >= 0 && daysSinceLast <= 7) {
+      if (daysSinceLast >= 0 && daysSinceLast <= 15) {
         let ageAtLast = lastBirthday.getFullYear() - dob.getFullYear();
         recentList.push({ ...p, lastBirthday, daysAgo: daysSinceLast, ageAtLast });
       }
@@ -261,7 +261,7 @@
     const upcomingHtml = upcomingList.slice(0,12).map(p => `<div class="birthday-item"><div class="birthday-info"><div class="birthday-name">${escapeHtml(p.fullName||'—')} <span class="badge-sm">${p.type==='church'?'Church':'Child'}</span></div><div class="birthday-meta">🎂 Turns ${p.ageAtNext} &nbsp;| 📅 ${p.nextBirthday.toLocaleDateString()}</div></div><div class="birthday-date">${p.daysLeft===0?'Today!':`${p.daysLeft} days`}</div></div>`).join('');
     document.getElementById('upcomingBirthdaysList').innerHTML = upcomingHtml || '<div class="empty-birthday">✨ No upcoming birthdays in next 30 days.</div>';
     const recentHtml = recentList.slice(0,12).map(p => `<div class="birthday-item"><div class="birthday-info"><div class="birthday-name">${escapeHtml(p.fullName||'—')} <span class="badge-sm">${p.type==='church'?'Church':'Child'}</span></div><div class="birthday-meta">🎉 Just turned ${p.ageAtLast} &nbsp;| ${p.lastBirthday.toLocaleDateString()}</div></div><div class="birthday-date">${p.daysAgo===0?'Today':`${p.daysAgo} day${p.daysAgo!==1?'s':''} ago`}</div></div>`).join('');
-    document.getElementById('recentBirthdaysList').innerHTML = recentHtml || '<div class="empty-birthday">📭 No birthdays in the last 7 days.</div>';
+    document.getElementById('recentBirthdaysList').innerHTML = recentHtml || '<div class="empty-birthday">📭 No birthdays in the last 15 days.</div>';
   }
   function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
